@@ -1,0 +1,70 @@
+After line 30 (main method) executes, main thread will finish execution while a
+new thread will be created will object id equal to 0. Thread with id 0 will
+execute, two new threads (with ids 1 and 2) will be created. At a given moment,
+you can have threads 0, 1 and 2 available to the scheduler. A synchronized block
+is used with a static variable/field.
+
+Thread with id 1 is created: the constructor creates a new object and assign to
+the static field 'o'. Before the execution start, thread with id 2 is created
+and a new object is assigned to 'o'. Thread with id 1 continues and start to
+execute the synchronized block and then pause and release 'o' before finishing
+due to the wait call. Thread with id 2 executes the whole synchronized block,
+while also notifying threads waiting for 'o'. Thread 1 resumes and finish the
+synchronized block.
+
+X_1a.java:
+1 --->
+2 --->
+2 <---
+1 <---
+
+If thread with id 2 enters the synchronized block before thread with id 1, the
+same happens, but with thread with id 2 waiting, thread with id 1 executing the
+whole synchronized block and notifying thread 2, which finally resumes and
+finished the synchronized block execution.
+
+X_1b.java:
+2 --->
+1 --->
+1 <---
+2 <---
+
+There is a chance that the object referenced by 'o' is not the same for the two
+threads: thread with id 1 is created, the constructor creates a new object
+and assign to 'o', the execution start and it enters the synchronized block and
+prints the first '1 --->' and waits. In this case, when thread with id 2 is
+created, a new object is created and assigned to 'o', so thread with id 2 will
+have a synchronized block with an object that will not be locked, so effectively
+non-blocking. Whichever thread executes first will wait, while the other thread
+will execute the whole synchronized block, notifying on an object different than
+the other thread is waiting for. The first thread will be in a wait state
+without ever being notified. If the first thread to be executed by the scheduler
+has id 1:
+
+X_1c.java
+1 --->
+2 --->
+2 <---
+(does not finish)
+
+o.wait may cause an exception if it is called by thread with id 1 after thread
+with id 2 overwrites 'o':
+
+X_1d.java
+1 --->
+Exception in thread "Thread-1" java.lang.IllegalMonitorStateException: current thread is not owner
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:321)
+	at X_1d.run(X_1d.java:35)
+2 --->
+2 <---
+
+If we save the object referenced by 'o' right after entering the synchronized
+block, we can make thread with id 2 execute first:
+
+X_1e.java
+2 --->
+1 --->
+1 <---
+(does not finish)
+

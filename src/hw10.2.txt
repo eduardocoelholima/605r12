@@ -1,0 +1,17 @@
+This is an implementation of a round robin synchronization, where each thread is
+ synchronized on objects 'first' and 'second'. Before reaching capacity, current
+  executing thread will try to spawn a new one, so when the maximum number of
+  threads are created and running no new threads are created. Every newly
+  created thread 'first' object will be the same as its creator's 'second', and
+  the last thread will have 'second' matching the first thread's first, which
+  closes the loop of running threads. Run method has a non-stoping while loop so
+   they will go on indefinitely, pausing on wait calls and resuming by current
+   running thread notify call. Because of the currently running synchronized
+   block on 'first', the next thread will only resume after being notified by
+   current thread followed by current thread calling wait on 'first'.
+
+Only possible output: (assuming MAX=3)
+1
+2
+3
+(repeats indefinitely)
