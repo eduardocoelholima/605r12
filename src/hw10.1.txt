@@ -68,3 +68,8 @@ X_1e.java
 1 <---
 (does not finish)
 
+X_1f.java
+
+Same as in (d), but we make both thread enter synchronized and make thread with
+id 2 go first and thread with id 1 make an illegal monitor notify call.
+
